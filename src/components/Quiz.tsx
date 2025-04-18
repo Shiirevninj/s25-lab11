@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import './Quiz.css'
 import QuizQuestion from '../core/QuizQuestion';
+import quizData from '../data/quizData';
 
 interface QuizState {
   questions: QuizQuestion[]
@@ -10,13 +11,12 @@ interface QuizState {
 }
 
 const Quiz: React.FC = () => {
-  const initialQuestions: QuizQuestion[] = [
-    {
-      question: 'What is the capital of France?',
-      options: ['London', 'Berlin', 'Paris', 'Madrid'],
-      correctAnswer: 'Paris',
-    },
-  ];
+  const initialQuestions: QuizQuestion[] = quizData.map((item) => ({
+    question: item.question,
+    options: item.options,
+    correctAnswer: item.correctAnswer,
+  })
+);
   const [state, setState] = useState<QuizState>({
     questions: initialQuestions,
     currentQuestionIndex: 0,  // Initialize the current question index.
@@ -27,12 +27,39 @@ const Quiz: React.FC = () => {
   const handleOptionSelect = (option: string): void => {
     setState((prevState) => ({ ...prevState, selectedAnswer: option }));
   }
+  const hasNextQuestion = (): boolean => {
+    return state.currentQuestionIndex < state.questions.length - 1;
+  };
+  
+  const getScore = (): number => {
+    const currentQ = state.questions[state.currentQuestionIndex];
+    return state.selectedAnswer === currentQ.correctAnswer
+      ? state.score + 1
+      : state.score;
+  };
+  
 
 
   const handleButtonClick = (): void => {
-    // Task3: Implement the logic for button click, such as moving to the next question.
-  } 
-
+    const newScore = getScore();
+  
+    if (hasNextQuestion()) {
+      setState((prevState) => ({
+        ...prevState,
+        currentQuestionIndex: prevState.currentQuestionIndex + 1,
+        selectedAnswer: null,
+        score: newScore,
+      }));
+    } else {
+      // Асуулт дууссан — төгсгөл рүү шилжүүлнэ.
+      setState((prevState) => ({
+        ...prevState,
+        score: newScore,
+        currentQuestionIndex: prevState.currentQuestionIndex + 1, 
+      }));
+    }
+  };
+  
   const { questions, currentQuestionIndex, selectedAnswer, score } = state;
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -66,7 +93,10 @@ const Quiz: React.FC = () => {
       <h3>Selected Answer:</h3>
       <p>{selectedAnswer ?? 'No answer selected'}</p>
 
-      <button onClick={handleButtonClick}>Next Question</button>
+      <button onClick={handleButtonClick}>
+  {hasNextQuestion() ? 'next question' : 'Submit'}
+</button>
+
     </div>
   );
 };
